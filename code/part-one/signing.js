@@ -3,7 +3,6 @@
 const secp256k1 = require('secp256k1');
 const { randomBytes, createHash } = require('crypto');
 
-
 /**
  * A function which generates a new random Secp256k1 private key, returning
  * it as a 64 character hexadecimal string.
@@ -13,10 +12,9 @@ const { randomBytes, createHash } = require('crypto');
  *   console.log(privateKey);
  *   // 'e291df3eede7f0c520fddbe5e9e53434ff7ef3c0894ed9d9cbcb6596f1cfe87e'
  */
-const createPrivateKey = () => {
-  // Enter your solution here
-
-};
+const createPrivateKey = () => (
+  randomBytes(32).toString('hex')
+);
 
 /**
  * A function which takes a hexadecimal private key and returns its public pair
@@ -31,10 +29,11 @@ const createPrivateKey = () => {
  *   Remember that the secp256k1-node library expects raw bytes (i.e Buffers),
  *   not hex strings! You'll have to convert the private key.
  */
-const getPublicKey = privateKey => {
-  // Your code here
-
-};
+const getPublicKey = privateKey => (
+  secp256k1.publicKeyCreate(
+    Buffer.from(privateKey, 'hex')
+  ).toString('hex')
+);
 
 /**
  * A function which takes a hex private key and a string message, returning
@@ -49,10 +48,18 @@ const getPublicKey = privateKey => {
  *   Remember that you need to sign a SHA-256 hash of the message,
  *   not the message itself!
  */
-const sign = (privateKey, message) => {
-  // Your code here
-
-};
+const sign = (privateKey, message) => (
+  secp256k1.sign(
+    Buffer.from(
+      createHash('sha256').update(message).digest('hex'),
+      'hex'
+    ),
+    Buffer.from(
+      privateKey,
+      'hex'
+    )
+  ).signature.toString('hex')
+);
 
 /**
  * A function which takes a hex public key, a string message, and a hex
@@ -64,10 +71,13 @@ const sign = (privateKey, message) => {
  *   console.log( verify(publicKey, 'Hello World?', signature) );
  *   // false
  */
-const verify = (publicKey, message, signature) => {
-  // Your code here
-
-};
+const verify = (publicKey, message, signature) => (
+  secp256k1.verify(
+    Buffer.from(createHash('sha256').update(message).digest('hex'), 'hex'),
+    Buffer.from(signature, 'hex'),
+    Buffer.from(publicKey, 'hex')
+  )
+);
 
 module.exports = {
   createPrivateKey,
