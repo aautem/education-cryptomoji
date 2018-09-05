@@ -1,7 +1,8 @@
 'use strict';
 
 const { createHash } = require('crypto');
-const signing = require('./signing');
+
+const { verify } = require('./signing');
 
 /**
  * A simple validation function for transactions. Accepts a transaction
@@ -10,9 +11,8 @@ const signing = require('./signing');
  *   - were improperly signed
  *   - have been modified since signing
  */
-const isValidTransaction = transaction => {
-  // Enter your solution here
-
+const isValidTransaction = ({ amount, recipient, signature, source }) => {
+  return amount > 0 && verify(source, source + recipient + amount, signature);
 };
 
 /**
@@ -21,9 +21,18 @@ const isValidTransaction = transaction => {
  *   - their hash or any other properties were altered
  *   - they contain any invalid transactions
  */
-const isValidBlock = block => {
-  // Your code here
+const isValidBlock = ({ hash, nonce, previousHash, transactions }) => {
+  const transactionString = (
+    transactions.map(({ signature }) => signature).join('')
+  );
 
+  const message = previousHash + transactionString + nonce;
+
+  return (
+    transactions.every(
+      isValidTransaction
+    ) && hash === createHash('sha256').update(message).digest('hex')
+  );
 };
 
 /**
@@ -36,9 +45,20 @@ const isValidBlock = block => {
  *   - contains any invalid blocks
  *   - contains any invalid transactions
  */
-const isValidChain = blockchain => {
-  // Your code here
+const isValidChain = ({ blocks }) => {
+  if (blocks[0].transactions.length !== [] || blocks[0].previousHash !== null) {
+    return false;
+  }
 
+  if (blocks.slice(1).some(({ previousHash }) => previousHash === null)) {
+    return false;
+  }
+
+  if (blocks.slice(1).some(block => !isValidBlock(block))) {
+    return false;
+  }
+
+  return true;
 };
 
 /**
